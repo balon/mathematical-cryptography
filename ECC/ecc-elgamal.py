@@ -1,12 +1,14 @@
-# dlp.py
-# Encrypter and Decrypter Classes for DLP
-# Modular approach to using the discrete logarithm problem for cryptography.
+# ecc-elgamal.py
+# Encrypter and Decrypter Classes using ECC (Elliptic Curve Crypto)
+# Modular approach to using El Gamal. This system used ECC.
 #
 # Authored by TJ Balon (@tjbalon)
 # -----------------------------------------------------------------
+import sys
+sys.path.append("..") # Adds higher directory to python modules path.
+
 import cryptotools as crypto
 import random as rand
-
 
 # -----------------------------------------------------------------
 class Decrypter:

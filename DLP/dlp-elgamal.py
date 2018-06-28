@@ -1,12 +1,14 @@
-# dlp.py
-# Encrypter and Decrypter Classes for DLP
-# Modular approach to using the discrete logarithm problem for cryptography.
+# dlp-elgamal.py
+# Encrypter and Decrypter Classes El Gamal.
+# Modular approach to using El Gamal. This system uses DLP.
 #
 # Authored by TJ Balon (@tjbalon)
 # -----------------------------------------------------------------
+import sys
+sys.path.append("..") # Adds higher directory to python modules path.
+
 import cryptotools as crypto
 import random as rand
-
 
 # -----------------------------------------------------------------
 class Decrypter:
@@ -115,7 +117,8 @@ def main():
 
 
 # -----------------------------------------------------------------
-if __name__ == "__main__":
-  main()
+if __name__ == "__main__" and __package__ is None:
+    main()
+    __package__ = "expected.package.name"
 
 
