@@ -14,9 +14,10 @@ import random as rand
 class Decrypter:
   'Decrypter class, controls decrypting data'
 
-  def __init__(self, generator, prime):
-    self.generator = generator
+  def __init__(self, pointP, prime, eqvarA):
+    self.pointP = pointP
     self.prime = prime
+    self.eqvarA = eqvarA
 
     # Get a privateKey from the user to use
     while True:
@@ -27,38 +28,40 @@ class Decrypter:
         print("Error: PrivateKey must be an integer!") 
 
     # Generate publicKey
-    self.publicKey = crypto.fastpower(self.generator, self._privateKey, self.prime)
+    self.publicKey = crypto.fastaddition(self.pointP, self._privateKey, self.prime, eqvarA)
     print("Public Key: ", self.publicKey)
 
   def getPubkey(self):
     return self.publicKey
 
   def doDecrypt(self, dpk):
-    # Generate g^(ak)
-    unlockedGen = crypto.fastpower(dpk[0], self._privateKey, self.prime)
+    # Get the point with the private key kP
+    unlockedPoint = crypto.fastaddition(dpk[0], self._privateKey, self.prime, self.eqvarA)
 
-    # find the inverse of g^(ak) (Inverse of unlockedGen)
-    inverseGen = crypto.inverse(unlockedGen, self.prime)
+    # find the inverse (Inverse of unlockedPoint)
+    inversePoint = crypto.eccinverse(unlockedPoint)
 
-    # Multiply inverse times encrypted message, then mod by the prime
-    return ((inverseGen * dpk[1]) % self.prime)
+    # ECC Add inverse to c2 from bob
+    return (crypto.eccadd(self.prime, self.eqvarA, dpk[1], inversePoint))
 
 
 # -----------------------------------------------------------------
 class Encrypter:
   'Encrypter class, controls encrypting data'
 
-  def __init__(self, generator, prime):
-    self.generator = generator
+  def __init__(self, pointP, prime, eqvarA):
+    self.pointP = pointP
     self.prime = prime
+    self.eqvarA = eqvarA
 
     # Get a message from the user to use
     while True:
       try:
-        self._message = int(input("Insert a message (private info): "))
+        self._message = input("Insert a message (M) format as x,y [private info]: ")
+        self._message = tuple(map(int,self._message.split(',')))  
         break
       except:
-        print("Error: Message must be an integer!") 
+        print("Error: Message must be an in format x,y! Example: 2,3") 
 
   def encryptMsg(self, ePubkey):
     key = rand.randint(1, self.prime)
@@ -66,16 +69,17 @@ class Encrypter:
     print("Sending message: ", self._message)
     print("Using ephemeral key: ", key)
 
-    generatorKey = crypto.fastpower(self.generator, key, self.prime)
-    encodedPub = crypto.fastpower(ePubkey, key, self.prime)
-    encodedMsg = encodedPub * self._message
+    encodedPoint = crypto.fastaddition(self.pointP, key, self.prime, self.eqvarA)
+    encodedPub = crypto.fastaddition(ePubkey, key, self.prime, self.eqvarA)
+    encodedMsg = crypto.eccadd(self.prime, self.eqvarA, encodedPub, self._message)
 
-    print("g raised to k: ", generatorKey)
+    print("g raised to k: ", encodedPoint)
     print("Encoded message: ", encodedMsg)
 
     self.dpk = crypto.datapack(generatorKey, encodedMsg)
+    print("Stored datapack: ", self.dpk)
 
-  # Return datapack of encrypted message and generator raised to k
+  # Return datapack of encrypted message and encoded point
   def getEncrypted(self):
     return self.dpk
 
@@ -84,13 +88,14 @@ class Encrypter:
 def main():
   # Control Encrypt/Decrypt Process
 
-  # Get the generator from the user, validating input!
+  # Start by getting the first point from the user.
   while True:
     try:
-      generator = int(input("Insert a generator (public info): "))
+      pointP = input("Insert a point (P) format as x,y [public info]: ")
+      pointP = tuple(map(int,pointP.split(',')))  
       break
     except:
-      print("Error: Generator must be an integer!")
+      print("Error: Point must be an in format x,y! Example: 2,3")
 
   # Get the prime from the user, validating input!
   while True:
@@ -98,14 +103,23 @@ def main():
       prime = int(input("Insert a prime (public info): "))
       break
     except:
-      print("Error: Generator must be an integer!")
+      print("Error: Prime must be an integer!")
 
-  print("Generator: ", generator)
+  # Get A from the user (equation)
+  while True:
+    try:
+      eqvarA = int(input("Insert A (from the equation): "))
+      break
+    except:
+      print("Error: Equation Variable A must be an integer!")
+
+  print("Starting Point: ", pointP)
   print("Prime: ", prime)
+  print("A: ", eqvarA)
 
   # Initialize Alice & Bob
-  alice = Decrypter(generator, prime)
-  bob = Encrypter(generator, prime)
+  alice = Decrypter(pointP, prime, eqvarA)
+  bob = Encrypter(pointP, prime, eqvarA)
 
   # Bob encrypts message, with Alice pub-key
   bob.encryptMsg(alice.getPubkey())
@@ -119,5 +133,3 @@ def main():
 # -----------------------------------------------------------------
 if __name__ == "__main__":
   main()
-
-

@@ -61,39 +61,45 @@ def datapack(*argv):
 # ECC ADDITION PORTION --- FUNCTIONS MUST BE IN THIS ORDER!
 # -----------------------------------------------------------------
 
-# Global Variables
-EI = 3.14
-x = 0
-y = 1
+# Constats for ECC
+EI = 3.14     # PI will be defined as our infinity value
+x = 0         # 0 of the tuple is the x-coordinate
+y = 1         # 1 of the tuple is the y-coordinate
 
 # -----------------------------------------------------------------
 # EC Addition Functions (Merged)                              START 
 # -----------------------------------------------------------------
 def eccadd(prime, eqvarA, pointP, pointQ):
+  # Check to see if our points are infinity or not
   result = infinityCheck(pointP, pointQ)
   if result != 0:
     return result
 
+  # Check to see if they are the inverse of each other
   result = inverseCheck(pointP, pointQ, prime)
   if result != 0:
     return result
   
   return advaddition(prime, eqvarA, pointP, pointQ)
 
+# -------------------------------------------------
 def infinityCheck(pointP, pointQ):  
-  if pointP == EI:
-    return pointQ
-  elif pointQ == EI:
+  if pointP == EI:        # is pointP infinity?
+    return pointQ        
+  elif pointQ == EI:      # is pointQ infinity?
     return pointP
   else:
-    return 0
+    return 0              # neither are!
 
+# -------------------------------------------------
 def inverseCheck(pointP, pointQ, prime):
+  # Here we will check if the points are the same, but second is the inverse
   if pointP[x] == pointQ[x] and pointP[y] == (-pointQ[y] % prime):
     return EI
   else:
     return 0
 
+# -------------------------------------------------
 def advaddition(prime, eqvarA, pointP, pointQ):
   if(pointP == pointQ):
     eqLambda = ((3 * pow(pointP[x], 2) + eqvarA) * (inverse(2 * pointP[y], prime)) % prime)
@@ -108,7 +114,6 @@ def advaddition(prime, eqvarA, pointP, pointQ):
 # -----------------------------------------------------------------
 # EC Addition Functions (Merged)                                END
 # -----------------------------------------------------------------
-
 
 # -----------------------------------------------------------------
 def fastaddition(base, coeff, prime, eqvarA):
@@ -140,3 +145,6 @@ def fastaddition(base, coeff, prime, eqvarA):
   return (reduce(lambda x, y: eccadd(prime, eqvarA, x, y), pNeed))
 
 # -----------------------------------------------------------------
+def eccinverse(pointP):
+  newPoint = (pointP[x], -pointP[y])
+  return newPoint

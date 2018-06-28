@@ -98,7 +98,7 @@ def main():
       prime = int(input("Insert a prime (public info): "))
       break
     except:
-      print("Error: Generator must be an integer!")
+      print("Error: Prime must be an integer!")
 
   print("Generator: ", generator)
   print("Prime: ", prime)
